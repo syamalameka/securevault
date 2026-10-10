@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVault – Enterprise Document & Access Management</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="brand-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 8v4"/>
+            <path d="M12 16h.01"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">SecureVault</h1>
+          <span class="brand-tagline">Zero-Trust Document & Access Governance</span>
+        </div>
+      </div>
+
+      <!-- Quick Demo Role Switcher -->
+      <div class="demo-role-switcher">
+        <span class="switcher-label">⚡ Quick Role Switch:</span>
+        <div class="role-btn-group">
+          <button class="role-btn" data-role="ADMIN" id="btn-demo-admin" title="Full superuser access">
+            <span class="role-icon">👑</span>
+            <span class="role-name">Admin (Alice)</span>
+          </button>
+          <button class="role-btn" data-role="MANAGER" id="btn-demo-manager" title="Upload, Edit & Manage Docs">
+            <span class="role-icon">👔</span>
+            <span class="role-name">Manager (Bob)</span>
+          </button>
+          <button class="role-btn" data-role="EMPLOYEE" id="btn-demo-employee" title="View-Only role">
+            <span class="role-icon">💼</span>
+            <span class="role-name">Employee (Charlie)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="user-profile-badge" id="user-profile-badge">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="user-meta">
+          <span class="user-name" id="user-display-name">Loading...</span>
+          <span class="user-role-tag" id="user-display-role">EMPLOYEE</span>
+        </div>
+        <button id="btn-logout" class="btn-icon" title="Sign Out">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content">
+      <!-- Enterprise Stats Overview -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Active Documents</span>
+            <span class="stat-value" id="stat-total-docs">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Encryption Standard</span>
+            <span class="stat-value text-green">AES-256 Fernet</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Total Audit Events</span>
+            <span class="stat-value" id="stat-total-events">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card highlight-danger">
+          <div class="stat-icon-wrapper red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Access Denied (403)</span>
+            <span class="stat-value text-red" id="stat-blocked-attempts">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security Notice Banner -->
+      <div class="scenario-banner" id="scenario-banner">
+        <div class="banner-icon">💡</div>
+        <div class="banner-content">
+          <strong>Interactive RBAC Verification Guide:</strong>
+          <span>Try switching to <b>Employee (Charlie)</b> and clicking <b>Download</b> on <code>Company_Report.pdf</code>. Charlie only has View permission, so SecureVault immediately triggers a <code>403 Forbidden</code> access denial and registers it in the <b>Audit Logs</b>!</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tab-bar">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-documents" id="btn-tab-docs">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Documents Repository
+          </button>
+          <button class="tab-btn" data-tab="tab-audit" id="btn-tab-audit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Audit Logs & Security Trail
+            <span class="badge-counter" id="audit-denied-badge">0 Denied</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-rbac" id="btn-tab-rbac">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Access Matrix & Users
+          </button>
+        </div>
+
+        <div class="tab-actions">
+          <button class="btn btn-primary" id="btn-open-upload" title="Upload encrypted document">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload Document
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Documents Repository -->
+      <section id="tab-documents" class="tab-pane active">
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="doc-search-input" placeholder="Search documents by title, description, or keyword..." />
+          </div>
+
+          <div class="filter-group">
+            <label for="category-filter">Category:</label>
+            <select id="category-filter">
+              <option value="All">All Categories</option>
+              <option value="Finance">Finance</option>
+              <option value="Legal">Legal</option>
+              <option value="HR">HR</option>
+              <option value="Engineering">Engineering</option>
+              <option value="General">General</option>
+            </select>
+            <button class="btn btn-secondary btn-icon-only" id="btn-refresh-docs" title="Refresh list">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="table-container">
+          <table class="data-table" id="documents-table">
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Category</th>
+                <th>Version</th>
+                <th>Owner</th>
+                <th>File Size</th>
+                <th>Your Access</th>
+                <th>Updated</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="documents-list-body">
+              <tr>
+                <td colspan="8" class="text-center py-4">Loading documents...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab 2: Audit Logs & Security Trail -->
+      <section id="tab-audit" class="tab-pane">
+        <div class="controls-bar audit-controls">
+          <div class="filter-group">
+            <label for="audit-status-filter">Status:</label>
+            <select id="audit-status-filter">
+              <option value="ALL">All Statuses</option>
+              <option value="DENIED" class="option-denied">🔴 Denied (Violations)</option>
+              <option value="ALLOWED" class="option-allowed">🟢 Allowed (Permitted)</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="audit-action-filter">Action:</label>
+            <select id="audit-action-filter">
+              <option value="ALL">All Actions</option>
+              <option value="DOWNLOAD_ATTEMPT">DOWNLOAD_ATTEMPT (Blocked)</option>
+              <option value="DOWNLOAD">DOWNLOAD</option>
+              <option value="VIEW">VIEW</option>
+              <option value="UPLOAD">UPLOAD</option>
+              <option value="VERSION_ADD">VERSION_ADD</option>
+              <option value="PERMISSION_UPDATE">PERMISSION_UPDATE</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+
+          <div class="search-box">
+            <input type="text" id="audit-user-search" placeholder="Filter by username or keyword..." />
+          </div>
+
+          <button class="btn btn-secondary" id="btn-refresh-audit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+            </svg>
+            Refresh Logs
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table audit-table" id="audit-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Document</th>
+                <th>Ver</th>
+                <th>IP Address</th>
+                <th>Details & Reason</th>
+              </tr>
+            </thead>
+            <tbody id="audit-logs-body">
+              <tr>
+                <td colspan="9" class="text-center py-4">Loading audit logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab 3: Access Matrix & Users -->
+      <section id="tab-rbac" class="tab-pane">
+        <div class="rbac-container">
+          <div class="card mb-4">
+            <h3 class="card-title">🔐 Role-Based Access Control (RBAC) Specification</h3>
+            <p class="card-subtitle">Default permission governance across SecureVault roles:</p>
+            <table class="data-table mt-3">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>View Document</th>
+                  <th>Download File</th>
+                  <th>Upload New Versions</th>
+                  <th>Manage Permissions</th>
+                  <th>Delete Document</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="role-badge admin">ADMIN</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Full Control</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                </tr>
+                <tr>
+                  <td><span class="role-badge manager">MANAGER</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Allowed</span></td>
+                  <td><span class="perm-check yes">✓ Configurable</span></td>
+                  <td><span class="perm-check no">✗ Restricted</span></td>
+                </tr>
+                <tr>
+                  <td><span class="role-badge employee">EMPLOYEE</span></td>
+                  <td><span class="perm-check yes">✓ View-Only</span></td>
+                  <td><span class="perm-check no">✗ Denied (403)</span></td>
+                  <td><span class="perm-check no">✗ Denied</span></td>
+                  <td><span class="perm-check no">✗ Denied</span></td>
+                  <td><span class="perm-check no">✗ Denied</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">👥 Organization Directory</h3>
+            <table class="data-table mt-3">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Department</th>
+                  <th>Quick Login</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr><td colspan="6" class="text-center py-3">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Upload Document -->
+    <div class="modal-overlay" id="modal-upload">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>📤 Upload New Document (Encrypted)</h3>
+          <button class="modal-close" data-close="modal-upload">&times;</button>
+        </div>
+        <form id="form-upload-doc">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="upload-file">Select File (PDF, DOCX, Images, etc.) *</label>
+              <input type="file" id="upload-file" required class="file-input" />
+              <small class="text-muted">Files are automatically encrypted with AES-256 Fernet before disk write.</small>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="upload-title">Document Title *</label>
+                <input type="text" id="upload-title" placeholder="e.g. Q3 Financial Statement" required />
+              </div>
+              <div class="form-group flex-1">
+                <label for="upload-category">Category</label>
+                <select id="upload-category">
+                  <option value="Finance">Finance</option>
+                  <option value="Legal">Legal</option>
+                  <option value="HR">HR</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="upload-description">Description & Confidentiality Notes</label>
+              <textarea id="upload-description" rows="2" placeholder="Brief purpose or classification info..."></textarea>
+            </div>
+
+            <div class="permissions-matrix-box">
+              <label class="font-bold">Initial Access Permissions Matrix</label>
+              <div class="perm-table-wrap">
+                <table class="perm-grid">
+                  <thead>
+                    <tr>
+                      <th>Role</th>
+                      <th>View</th>
+                      <th>Download</th>
+                      <th>Edit</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>👑 Admin</strong></td>
+                      <td><input type="checkbox" id="perm-admin-view" checked disabled /></td>
+                      <td><input type="checkbox" id="perm-admin-dl" checked disabled /></td>
+                      <td><input type="checkbox" id="perm-admin-edit" checked disabled /></td>
+                      <td><input type="checkbox" id="perm-admin-del" checked disabled /></td>
+                    </tr>
+                    <tr>
+                      <td><strong>👔 Manager</strong></td>
+                      <td><input type="checkbox" id="perm-manager-view" checked /></td>
+                      <td><input type="checkbox" id="perm-manager-dl" checked /></td>
+                      <td><input type="checkbox" id="perm-manager-edit" checked /></td>
+                      <td><input type="checkbox" id="perm-manager-del" /></td>
+                    </tr>
+                    <tr>
+                      <td><strong>💼 Employee</strong></td>
+                      <td><input type="checkbox" id="perm-employee-view" checked /></td>
+                      <td><input type="checkbox" id="perm-employee-dl" /></td>
+                      <td><input type="checkbox" id="perm-employee-edit" /></td>
+                      <td><input type="checkbox" id="perm-employee-del" /></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="modal-upload">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-upload">Encrypt & Upload</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Version History & Upload Version -->
+    <div class="modal-overlay" id="modal-versions">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="versions-modal-title">📜 Document Version History</h3>
+          <button class="modal-close" data-close="modal-versions">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="version-list-section">
+            <h4>Historical Revisions</h4>
+            <div id="versions-container" class="version-timeline">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <hr class="modal-divider" />
+
+          <!-- New Version Form (only for Edit permitted roles) -->
+          <div id="upload-new-version-box" class="new-version-box">
+            <h4>🚀 Upload New Version (e.g. v2, v3)</h4>
+            <form id="form-upload-version">
+              <input type="hidden" id="version-doc-id" />
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="new-version-file">Updated File *</label>
+                  <input type="file" id="new-version-file" required />
+                </div>
+                <div class="form-group flex-2">
+                  <label for="new-version-notes">Version Change Notes *</label>
+                  <input type="text" id="new-version-notes" placeholder="e.g. Updated audit figures after executive review" required />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary mt-2">Upload Revision</button>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-versions">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Permissions Configuration -->
+    <div class="modal-overlay" id="modal-permissions">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="perm-modal-title">🔐 Manage Document Permissions</h3>
+          <button class="modal-close" data-close="modal-permissions">&times;</button>
+        </div>
+        <form id="form-edit-permissions">
+          <input type="hidden" id="perm-doc-id" />
+          <div class="modal-body">
+            <p class="text-muted mb-3">Adjust granular permissions for each role. Changes take effect immediately and are recorded in the audit trail.</p>
+            <table class="perm-grid">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>View</th>
+                  <th>Download</th>
+                  <th>Edit</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>👑 Admin</strong></td>
+                  <td><input type="checkbox" id="edit-perm-admin-view" checked disabled /></td>
+                  <td><input type="checkbox" id="edit-perm-admin-dl" checked disabled /></td>
+                  <td><input type="checkbox" id="edit-perm-admin-edit" checked disabled /></td>
+                  <td><input type="checkbox" id="edit-perm-admin-del" checked disabled /></td>
+                </tr>
+                <tr>
+                  <td><strong>👔 Manager</strong></td>
+                  <td><input type="checkbox" id="edit-perm-manager-view" /></td>
+                  <td><input type="checkbox" id="edit-perm-manager-dl" /></td>
+                  <td><input type="checkbox" id="edit-perm-manager-edit" /></td>
+                  <td><input type="checkbox" id="edit-perm-manager-del" /></td>
+                </tr>
+                <tr>
+                  <td><strong>💼 Employee</strong></td>
+                  <td><input type="checkbox" id="edit-perm-employee-view" /></td>
+                  <td><input type="checkbox" id="edit-perm-employee-dl" /></td>
+                  <td><input type="checkbox" id="edit-perm-employee-edit" /></td>
+                  <td><input type="checkbox" id="edit-perm-employee-del" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="modal-permissions">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Permissions</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: In-App Document Viewer -->
+    <div class="modal-overlay" id="modal-viewer">
+      <div class="modal-card modal-xl">
+        <div class="modal-header">
+          <div class="viewer-header-info">
+            <h3 id="viewer-title">Document Preview</h3>
+            <span class="viewer-meta" id="viewer-meta">v1</span>
+          </div>
+          <div class="viewer-actions">
+            <button class="btn btn-sm btn-secondary" id="btn-viewer-download">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download
+            </button>
+            <button class="modal-close" data-close="modal-viewer">&times;</button>
+          </div>
+        </div>
+        <div class="modal-body p-0 viewer-frame-wrap">
+          <iframe id="viewer-iframe" src="about:blank"></iframe>
+          <div id="viewer-fallback" class="viewer-fallback d-none">
+            <div class="fallback-icon">📄</div>
+            <h4 id="fallback-filename">Document</h4>
+            <p id="fallback-message">Preview is rendered inline above. If your browser blocks inline rendering, download the decrypted file using the button below.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Access Denied / 403 Violation Alert Modal -->
+    <div class="modal-overlay" id="modal-denied">
+      <div class="modal-card modal-denied-card">
+        <div class="denied-icon-wrap">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+          </svg>
+        </div>
+        <h2 class="denied-title">403 Forbidden – Access Denied</h2>
+        <p class="denied-message" id="denied-message-text">
+          You do not have permission to download this file.
+        </p>
+
+        <div class="denied-log-box">
+          <div class="denied-log-title">🛡️ Security Audit Record Created:</div>
+          <div class="denied-log-item"><span>User:</span> <strong id="denied-user">Charlie</strong></div>
+          <div class="denied-log-item"><span>Action:</span> <strong id="denied-action">Download Attempt</strong></div>
+          <div class="denied-log-item"><span>Document:</span> <strong id="denied-file">Company_Report.pdf</strong></div>
+          <div class="denied-log-item"><span>Status:</span> <strong class="badge-denied">DENIED</strong></div>
+          <div class="denied-log-item"><span>Timestamp:</span> <span id="denied-time">10:32 AM</span></div>
+        </div>
+
+        <div class="modal-footer justify-center mt-4">
+          <button class="btn btn-primary" id="btn-view-denied-log">Go to Audit Log</button>
+          <button class="btn btn-secondary" data-close="modal-denied">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

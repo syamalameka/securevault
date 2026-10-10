@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: securevault_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: securevault_user
+      POSTGRES_PASSWORD: securevault_password
+      POSTGRES_DB: securevault_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securevault_user -d securevault_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  securevault-app:
+    build: .
+    container_name: securevault_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://securevault_user:securevault_password@postgres:5432/securevault_db
+      - SECRET_KEY=securevault-production-enterprise-secret-key-32bytes
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    ports:
+      - "8000:8000"
+    volumes:
+      - vault_data:/app/data/vault
+
+volumes:
+  pgdata:
+  vault_data:
